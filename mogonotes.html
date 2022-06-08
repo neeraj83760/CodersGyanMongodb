@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+
+  <!-- VVIMP point :  find method check all the records even if the is found but findOne stops and
+       return the value at time it find the value 
+  -->
+    <!-- Important commands in MongoDB 
+    1. show dbs;
+    2. use ecom; // it's to create database of name ecom
+    3. show collections; // it shows how many tables are there in ecom db
+    4. db.createCollection('products'); // use to create a table name prodcuts in the database 
+    5. db.products.drop(); // its is used to drop the database name 'products'
+    6. db.dropDatabase();// it is used to drop the complete db, but make sure you should be inside
+    that database first 
+    7. db.products.find();// it's to check whether there is a data in the products table or not.
+    8. db.products.insertOne({name:'Keyboard', price: 23})// insert one value in products document
+    9. now if u will run db.products.find(); it will show u the above inserted element 
+    10. db.products.find({price: 23}); // passing constraints means only show the doc whose price is 23
+    11.  db.products.findOne({price: 23});
+    12. db.products.insertMany([{name:'Keyboard', price: 23}, {name:'charger', price: 500}]) // array of objects
+    13. db.products.find().pretty();// just give the better formatted data 
+    14. db.products.update({_id:ObjectId("602cb789we3456yuo1")}, {$set:{name: 'TV'}})
+    15.db.products.deleteOne({_id:ObjectId("602cb789we3456yuo1")});
+    16 db.products.deleteMany({_id: { $in: [ObjectId("602cb789we3456yuo1"),ObjectId("502cb789we3456yum2")]});
+    17 . Passing a foriegn key in NoSql db is not a good practice ...it only be a part of SQL db
+
+
+    https://www.mongodb.com/docs/manual/reference/operator/ 
+
+    https://www.mongodb.com/docs/manual/crud/
+
+    https://www.mongodb.com/docs/v4.0/tutorial/enable-authentication/ 
+
+    " Enabling access control on a MongoDB deployment enforces authentication, requiring users to 
+      identify themselves. When accessing a MongoDB deployment that has access control enabled, 
+      users can only perform actions as determined by their roles."
+
+
+      Indexing :   Agar humien database ki query optimize karni hai aur uska speed thoda badahna hai
+      // we use Indexing in that case
+
+      // B trees are used to Index the tables 
+
+      // For Indexing we must have many documents so that we can find the details accordingly ;
+
+      for(i=1; i<5000; i++){
+
+        db.products.insert({name: 'product'+ i, price : i})
+      }
+      After running the above documents 5000 documents will be created 
+
+      You can check it also by running the command : db.products.find() 
+
+      db.products.find({name: 'product2000'})// if we run this query it will find the respective
+      // product in the 5000 products .....by how much time this query will take? 
+
+      // To check how much time the query took to find the particular product ..for that we have 
+      // a method for that 
+      
+      db.products.find({name: 'product2000'}).explain('executionStats');
+
+      once u run the above command ...kindly check the propperty : executionTimeMills and totalDocsExamined 
+
+      Docs exmained : 5003 // which is the total number of docs inserted 
+      execution time in milliseconds : 3 to 4 which is con
+
+      Solution is :  db.products.createIndex({name:1}) // it will create one Inces
+
+
+      Key Point : Indexes tabhi dalana jab data ko aapko jayeda read karna ho .....but write operation
+      slow ho jata hai Indexing ki wajah se 
+
+      Agar humien ye check karna ho ki kounse kouse feilds ke upar indexes lagayi hai to aapko
+      simply type karna hai db.products.getIndexes()...
+
+      Key point : By defuault mongoDB jo ID field hota hai uske upar index pehele se hi hoti hai it means
+      agar aap index column ka use karke kuch bhi search kar rahe ho ..to wo record bhut jaldi humein
+      so hojata hai 
+
+      To delete Index :  db.products.dropIndex('name_1'); // in the round braces we need to enter
+      the name of the Index 
+
+
+
+    -->
+    <!-- Database pe username aur password kaise lagate hain ab hum ye dekhenge -->
+
+    <!-- > show dbs;
+admin   0.000GB
+config  0.000GB
+ecom    0.000GB
+local   0.000GB
+> use admin
+switched to db admin
+> db.createUser(
+... ... ... ... { 
+... ... ... ... user:"superAdmin", 
+... ... ... ... pwd:passwordPrompt(),
+... ... ... ... roles: [
+... ...                 {role: "userAdminAnyDatabase", db: "admin" }, 
+... ...                  "readWriteAnyDatabase"
+... ...                ]
+... ...         }
+... ...             )
+Enter password: 
+Successfully added user: {
+	"user" : "superAdmin",
+	"roles" : [
+		{
+			"role" : "userAdminAnyDatabase",
+			"db" : "admin"
+		},
+		"readWriteAnyDatabase"
+	]
+}
+
+Iske baad restart mongo DB: https://www.mongodb.com/docs/v4.0/tutorial/enable-authentication/  
+
+command :   db.adminCommand( { shutdown: 1 } )
+
+Configuration file of mongo DB server : https://www.mongodb.com/docs/v4.0/reference/configuration-options/#configuration-options
+
+If you start the mongod using a configuration file, add the security.authorization configuration 
+file setting:
+
+security:
+    authorization: enabled
+
+    restart mongod service and type in below commands 
+
+    after exiting from the mono shell type in :  nano /etc/mongod.conf    ....which is the path mentioned
+    in Configuration file of mongo DB server : https://www.mongodb.com/docs/v4.0/reference/configuration-options/#configuration-options
+    article 
+
+    inside the nano editor type in :  
+    
+    security:
+    authorization: enabled
+    
+    Once you save the above text in the nano editor type the below command 
+
+    mongo --port 27017 -u "superAdmin" --authenticationDatabase "admin" -p
+
+   
+
+    Again go into : ecom db ... use ecom and then run the below mentioned command:
+
+    db.createUser(
+... ... ... ... {
+... ... ... ...  user:'ecomUser',
+... ... ... ...  pwd: passwordPrompt(),
+... ... ... ...  roles: [
+...                      {role:'readWrite',db:'ecom'},
+...                      { role:'read', db:'products'} 
+...                     ]
+... })
+
+
+after that enter any password which you want and exit for the mongo shell, then the below mentioned
+command: 
+mongo --port 27017 --authenticationDatabase "ecom" -u "ecomUser" -p
+
+After running the command enter the password 
+
+db.runCommand({connectionStatus: 1 }) // this command is used to check as a kounsa user app login hain
+// like admin or other .....  below is the output which you'll get 
+
+> show dbs;
+ecom  0.000GB
+> use ecom
+switched to db ecom
+> db.products.insertOne({name:'Xyz', price: 200})
+{
+	"acknowledged" : true,
+	"insertedId" : ObjectId("6263c8481dd9d671030a3567")
+}
+> db.runCommand({connectionStatus:1})
+{
+	"authInfo" : {
+		"authenticatedUsers" : [
+			{
+				"user" : "ecomUser",
+				"db" : "ecom"
+			}
+		],
+		"authenticatedUserRoles" : [
+			{
+				"role" : "read",
+				"db" : "products"
+			},
+			{
+				"role" : "readWrite",
+				"db" : "ecom"
+			}
+		]
+	},
+	"ok" : 1
+}
+
+//  Now we'll see that how we can connect the database ... with node App Integration 
+  -->
+</body>
+</html>
